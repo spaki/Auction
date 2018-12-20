@@ -4,6 +4,9 @@
       <a href="#" class="navbar-brand d-flex align-items-center">
         <strong>Auction</strong>
       </a>
+      <a *ngIf="GetCurrentUserFromStorage()" (click)="Logout()">
+        Logout
+      </a>
     </div>
   </div>
 </header>
@@ -18,11 +21,9 @@
 
   <div class="album py-5 bg-light">
     <div class="container">
-      <div class="row">
-
+      
         <router-outlet></router-outlet>
 
-      </div>
     </div>
   </div>
 

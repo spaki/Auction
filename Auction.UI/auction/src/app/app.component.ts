@@ -21,4 +21,15 @@ export class AppComponent {
   Refresh() {
     this.user = this.userService.GetFromStorage();
   }
+
+  GetCurrentUserFromStorage() {
+    var result = this.userService.GetFromStorage();
+    return result;
+  }
+
+  Logout() {
+    this.userService.Logout();
+    this.Refresh();
+    this.userService.Guard();
+  }
 }
