@@ -24,6 +24,7 @@ export class AppComponent {
 
   GetCurrentUserFromStorage() {
     var result = this.userService.GetFromStorage();
+    this.user = result;
     return result;
   }
 

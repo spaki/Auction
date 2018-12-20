@@ -16,7 +16,7 @@ export class HelperService {
     if(!window.location.hostname.includes('localhost'))
         return window.location.hostname;
     
-    return 'http://localhost:1929/';
+    return 'https://localhost:44347/';
   }
 
   GetEndpoint(endpoint): string {
