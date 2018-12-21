@@ -1,0 +1,9 @@
+<div class="col-md-12">
+    <form>
+        <div class="form-group">
+            <input type="text" class="form-control" [(ngModel)]="user.name" name="name" placeholder="Please, post your name to continue" aria-describedby="message">
+            <small *ngIf="message" id="message" [className]="messageCssClass">{{ message }}</small>
+        </div>
+        <button type="submit" class="btn btn-primary" (click)="Save()">Send</button>
+    </form>
+</div>

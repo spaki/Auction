@@ -1,0 +1,32 @@
+<div *ngIf="auctionProduct">
+    <div class="card mb-4 shadow-sm">
+        <img class="card-img-top" [src]="auctionProduct.product.pictures[0].url">
+        <div class="card-body">
+            <p class="card-text">
+                <strong>
+                    {{ auctionProduct.product.name }}
+                </strong>
+            </p>
+            <p class="card-text">
+                {{ auctionProduct.product.description }}
+            </p>
+            <p class="card-text">
+                Started: {{ auctionProduct.started }} <br>
+                Initial Value: {{ auctionProduct.startValue }} <br>
+                Timeout (ms): {{ auctionProduct.leftTimeInMilliseconds }} <br>
+                Current Value: <span *ngIf="auctionProduct.lastValidBid">{{ auctionProduct.lastValidBid.value }}</span> <br>
+                Last Bid By: <span *ngIf="auctionProduct.lastValidBid">{{ auctionProduct.lastValidBid.user.name }}</span> <br>
+                Ended: {{ auctionProduct.ended }} 
+            </p>
+            <div class="form-group">
+                <input type="number" class="form-control" [(ngModel)]="value" name="value" />
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="btn-group">
+                    <button *ngIf="!auctionProduct.ended" type="button" class="btn btn-sm btn-success" (click)="AddBid()">Bid</button>
+                    <button *ngIf="auctionProduct.ended" type="button" class="btn btn-sm btn-outline-secondary" disabled>Bid</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

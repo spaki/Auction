@@ -1,0 +1,6 @@
+<div *ngIf="items" class="row">
+    <app-auction-card class="col-md-4" *ngFor="let item of items" [auctionProduct]="item"></app-auction-card>
+</div>
+<p *ngIf="message" id="message" [className]="messageCssClass">
+    {{ message }}
+</p>

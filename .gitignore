@@ -314,7 +314,7 @@ Thumbs.db
 
 # dotCover
 *.dotCover
-Components
+#Components
 
 Resource.designer.cs
 
