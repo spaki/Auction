@@ -28,8 +28,8 @@ namespace Auction.API
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseDeveloperExceptionPageIfDebug(env);
-            app.UseHttpsRedirection();
             app.UseCustomCors();
+            app.UseHttpsRedirection();
             app.UseSawaggerWithDocs();
             app.UseNotifyHub();
             app.UseMiddleware<DomainExceptionHandlerMiddleware>();

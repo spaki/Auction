@@ -51,9 +51,9 @@ namespace Auction.Domain.Models
                 var lastBid = LastValidBid;
 
                 if (lastBid != null)
-                    return (int)(DateTime.UtcNow - lastBid.DateTime).TotalMilliseconds;
+                    return TimeoutInMilliseconds - (int)(DateTime.UtcNow - lastBid.DateTime).TotalMilliseconds;
 
-                return (int)(DateTime.UtcNow - Started.Value).TotalMilliseconds;
+                return TimeoutInMilliseconds - (int)(DateTime.UtcNow - Started.Value).TotalMilliseconds;
             }
         }
 

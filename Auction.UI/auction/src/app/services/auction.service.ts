@@ -41,4 +41,8 @@ export class AuctionService {
     var result = this.http.post(endpoint, entity, { headers: this.helper.GetHeaders() });
     return result;
   }
+
+  Join(auctionProductId: string) {
+    this.hub.invoke("JoinGroup", auctionProductId)
+  }
 }

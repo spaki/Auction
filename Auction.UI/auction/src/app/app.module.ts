@@ -9,6 +9,8 @@ import { RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
 import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
+import { AuctionFormComponent } from './components/auction-form/auction-form.component';
+import { AuctionCardComponent } from './components/auction-card/auction-card.component';
 
 import { HelperService } from './services/helper.service';
 import { AuctionService } from './services/auction.service';
@@ -18,7 +20,9 @@ import { UserService } from './services/user.service';
   declarations: [
     AppComponent,
     HomeComponent,
-    LoginComponent
+    LoginComponent,
+    AuctionFormComponent,
+    AuctionCardComponent
   ],
   imports: [
     BrowserModule,

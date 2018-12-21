@@ -29,13 +29,9 @@ namespace Auction.API.Configuration
                 {
                     //options.SerializerSettings.MaxDepth = 5;
                     options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                    JsonConvert.DefaultSettings = () => options.SerializerSettings;
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-
-            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-            };
 
             return services;
         }
@@ -44,9 +40,11 @@ namespace Auction.API.Configuration
         {
             app.UseCors(builder =>
             {
-                builder.AllowAnyHeader();
-                builder.AllowAnyMethod();
-                builder.AllowAnyOrigin();
+                builder
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowAnyOrigin()
+                    .AllowCredentials();
             });
 
             return app;

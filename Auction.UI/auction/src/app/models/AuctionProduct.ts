@@ -11,7 +11,7 @@ export interface AuctionProduct {
     started: Date;
     ended: Date;
     bids: Bid[];
-    lastValidBid: number;
+    lastValidBid: Bid;
     status: number;
     leftTimeInMilliseconds: number;
 }

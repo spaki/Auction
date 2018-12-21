@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
 import { User } from '../models/User';
 import { HttpHeaders } from '@angular/common/http';
-import { Router } from '@angular/router';
 
 @Injectable()
 export class HelperService {
 
-  constructor(private router: Router) { }
+  constructor() { }
 
   GetUserStorageKey(): string {
     return "user-info"
