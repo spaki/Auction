@@ -67,8 +67,8 @@ export class HelperService {
     
     var result = "";
 
-    if(ex.error && ex.error.Error && ex.error.Error.Message && !this.IsNullOrWhiteSpaceOrEmpty(ex.error.Error.Message))
-      result += ex.error.Error.Message.toString();
+    if(ex.error && ex.error.error && ex.error.error.message && !this.IsNullOrWhiteSpaceOrEmpty(ex.error.error.message))
+      result += ex.error.error.message.toString();
 
     if(!this.IsNullOrWhiteSpaceOrEmpty(result))
       result += " | ";
@@ -85,7 +85,8 @@ export class HelperService {
     return result;
   }
 
-  AddMinutes(date: Date , minutes: number): Date {
-    return new Date(new Date(date).getTime() + minutes*60000);
+  AddMinutes(date: Date , minutes: number) {
+    var result = new Date(new Date(date).getTime() + minutes*60000).toJSON();
+    return result;
   }
 }

@@ -16,7 +16,7 @@ namespace Auction.Domain.Models
 
         public string Title { get; set; }
         public DateTime Start { get; set; }
-        public DateTime Avalilable { get; set; }
+        public DateTime Available { get; set; }
         public DateTime? Ended { get; set; }
         public List<AuctionProduct> AuctionProducts { get; set; } = new List<AuctionProduct>();
 
@@ -32,7 +32,7 @@ namespace Auction.Domain.Models
                 if (now > Start)
                     return AuctionStatus.Running;
 
-                if (now > Avalilable)
+                if (now > Available)
                     return AuctionStatus.NotStartedVisible;
 
                 return AuctionStatus.NotStartedInvisible;
@@ -59,7 +59,7 @@ namespace Auction.Domain.Models
                 if (new[] { AuctionStatus.Ended, AuctionStatus.Running, AuctionStatus.NotStartedVisible }.Contains(Status))
                     return 0;
 
-                var result = Avalilable - DateTime.UtcNow;
+                var result = Available - DateTime.UtcNow;
 
                 return (int)result.TotalMilliseconds;
             }
@@ -84,7 +84,7 @@ namespace Auction.Domain.Models
                 startTimer = new Timer((Start - DateTime.UtcNow).TotalMilliseconds) { AutoReset = false };
                 startTimer.Elapsed += StartTimer_Elapsed;
 
-                availableTimer = new Timer((Avalilable - DateTime.UtcNow).TotalMilliseconds) { AutoReset = false };
+                availableTimer = new Timer((Available - DateTime.UtcNow).TotalMilliseconds) { AutoReset = false };
                 availableTimer.Elapsed += AvailableTimer_Elapsed;
 
                 startTimer.Start();
@@ -100,13 +100,13 @@ namespace Auction.Domain.Models
             var now = DateTime.UtcNow;
             var safetyMargin = now.AddMinutes(1);
 
-            /*if (Start < now.AddMinutes(1))
+            if (Start < now.AddMinutes(1))
                 throw new DomainException("Start time should be greter than the current date time plus one minute.");
 
-            if (Avalilable < now.AddMinutes(1))
-                throw new DomainException("Avalilable preview time should be greter than the current date time plus one minute.");*/
+            if (Available < now.AddMinutes(1))
+                throw new DomainException("Available preview time should be greter than the current date time plus one minute.");
 
-            if (Start < Avalilable.AddMinutes(1))
+            if (Start < Available.AddMinutes(1))
                 throw new DomainException("Start time should be greter than the Available time plus one minute.");
 
             if(AuctionProducts.Count < 1)

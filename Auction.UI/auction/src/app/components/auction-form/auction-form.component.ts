@@ -39,8 +39,8 @@ export class AuctionFormComponent implements OnInit {
   GetServerInfo() {
     this.homeService.GetServerInfo().subscribe(result => {
       this.serverInfo = result;
-      this.auction.available = this.helper.AddMinutes(this.serverInfo.currentUTCDateTime, 2);
-      this.auction.start = this.helper.AddMinutes(this.serverInfo.currentUTCDateTime, 3);
+      this.auction.available = this.helper.AddMinutes(this.serverInfo.currentUTCDateTime, 3);
+      this.auction.start = this.helper.AddMinutes(this.serverInfo.currentUTCDateTime, 4);
       this.AddProduct();
     }, 
     ex => {
@@ -52,9 +52,7 @@ export class AuctionFormComponent implements OnInit {
     var i = 0;
     this.auction.auctionProducts.forEach(e => e.sequence = i++);
 
-    console.log(this.auction);
-
-    /*this.messageCssClass = "form-text text-muted alert alert-success";
+    this.messageCssClass = "form-text text-muted alert alert-success";
     this.message = "enviando...";
 
     this.auctionService.Post(this.auction).subscribe(
@@ -64,9 +62,9 @@ export class AuctionFormComponent implements OnInit {
       },
       ex => {
         this.messageCssClass = "form-text text-muted alert alert-danger";
-        this.message = ex.error.Error.Message + " | " + ex.message;
+        this.message = this.helper.GetErrorMessage(ex);
       }
-    );*/
+    );
   }
 
   AddProduct() {
