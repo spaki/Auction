@@ -5,6 +5,10 @@ import { UserService } from 'src/app/services/user.service';
 import { AuctionService } from 'src/app/services/auction.service';
 import { AuctionProduct } from 'src/app/models/AuctionProduct';
 import { Auction } from 'src/app/models/Auction';
+import { ServerInfo } from 'src/app/models/ServerInfo';
+import { HomeService } from 'src/app/services/home.service';
+import { Product } from 'src/app/models/Product';
+import { Picture } from 'src/app/models/Picture';
 
 @Component({
   selector: 'app-auction-form',
@@ -12,7 +16,9 @@ import { Auction } from 'src/app/models/Auction';
   styleUrls: ['./auction-form.component.css']
 })
 export class AuctionFormComponent implements OnInit {
-  entity: Auction = <Auction> {};
+  auction: Auction = <Auction> { };
+  serverInfo: ServerInfo;
+
   message: string = null;
   messageCssClass: string = null;
 
@@ -20,20 +26,38 @@ export class AuctionFormComponent implements OnInit {
     private userService: UserService,
     private auctionService: AuctionService,
     private helper: HelperService,
+    private homeService: HomeService,
     private router: Router
   ) {
     this.userService.Guard();
   }
 
   ngOnInit() {
-    
+    this.GetServerInfo();
+  }
+
+  GetServerInfo() {
+    this.homeService.GetServerInfo().subscribe(result => {
+      this.serverInfo = result;
+      this.auction.available = this.helper.AddMinutes(this.serverInfo.currentUTCDateTime, 2);
+      this.auction.start = this.helper.AddMinutes(this.serverInfo.currentUTCDateTime, 3);
+      this.AddProduct();
+    }, 
+    ex => {
+      console.error(ex);
+    });
   }
 
   Save() { 
-    this.messageCssClass = "form-text text-muted alert alert-success";
+    var i = 0;
+    this.auction.auctionProducts.forEach(e => e.sequence = i++);
+
+    console.log(this.auction);
+
+    /*this.messageCssClass = "form-text text-muted alert alert-success";
     this.message = "enviando...";
 
-    this.auctionService.Post(this.entity).subscribe(
+    this.auctionService.Post(this.auction).subscribe(
       result => {
         this.message = "salvo com sucesso!";
         this.router.navigate(['']);
@@ -42,6 +66,22 @@ export class AuctionFormComponent implements OnInit {
         this.messageCssClass = "form-text text-muted alert alert-danger";
         this.message = ex.error.Error.Message + " | " + ex.message;
       }
-    );
+    );*/
+  }
+
+  AddProduct() {
+
+    if(this.helper.IsNullOrWhiteSpaceOrEmpty(this.auction.auctionProducts))
+      this.auction.auctionProducts = [];
+
+    var auctionProduct = <AuctionProduct> { product: <Product> { pictures: [] } };
+    auctionProduct.product.pictures.push(<Picture>{});
+
+    this.auction.auctionProducts.push(auctionProduct);
+  }
+
+  RemoveProduct(auctionProduct: AuctionProduct) {
+    var index = this.auction.auctionProducts.indexOf(auctionProduct);
+    this.auction.auctionProducts.splice(index, 1);
   }
 }

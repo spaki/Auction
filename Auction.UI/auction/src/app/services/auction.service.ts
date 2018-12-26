@@ -11,14 +11,14 @@ export class AuctionService {
   
   private reconnectionInterval: number = 10000;
   private hub: HubConnection;
-  private connectedCallback: any;
+  private connectedCallback?:() => void;
 
   constructor(private http: HttpClient, private helper: HelperService, private userService: UserService) { 
     this.hub = new HubConnectionBuilder().withUrl(this.helper.GetBackendConnection() + "NotifyHub").build();
     this.hub.onclose(() => { this.Reconnect(); }); 
     
     this.hub.start().then(() => {
-      if(this.hub.state == HubConnectionState.Connected)
+      if(this.hub.state == HubConnectionState.Connected && this.connectedCallback)
         this.connectedCallback();
     }).catch(error => {
       console.error(error);
@@ -29,12 +29,11 @@ export class AuctionService {
   {
     this.hub.on(methodName, newMethod);
   }
-
-  OnConnected(callback: any)
+  OnConnected(callback?:() => void)
   {
     this.connectedCallback = callback;
     
-    if(this.hub.state == HubConnectionState.Connected)
+    if(this.hub.state == HubConnectionState.Connected && this.connectedCallback)
       this.connectedCallback();
   }
 

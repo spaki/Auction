@@ -84,4 +84,8 @@ export class HelperService {
 
     return result;
   }
+
+  AddMinutes(date: Date , minutes: number): Date {
+    return new Date(new Date(date).getTime() + minutes*60000);
+  }
 }
