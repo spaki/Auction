@@ -13,7 +13,7 @@ export class HelperService {
 
   GetBackendConnection(): string {
     if(!window.location.hostname.includes('localhost'))
-        return window.location.hostname;
+        return "https://spakiauction.azurewebsites.net/";
     
     return 'https://localhost:44347/';
   }
