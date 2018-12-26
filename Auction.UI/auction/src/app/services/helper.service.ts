@@ -85,7 +85,7 @@ export class HelperService {
     return result;
   }
 
-  AddMinutes(date: Date , minutes: number) {
+  AddMinutes(date: Date , minutes: number): any {
     var result = new Date(new Date(date).getTime() + minutes*60000).toJSON();
     return result;
   }
