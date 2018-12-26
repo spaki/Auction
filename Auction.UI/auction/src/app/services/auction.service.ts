@@ -1,20 +1,28 @@
-import { Injectable, Output, EventEmitter } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { HelperService } from './helper.service';
 import { Observable } from 'rxjs'
-import { AuctionProduct } from '../models/AuctionProduct';
-import { HubConnection, HubConnectionBuilder } from '@aspnet/signalr';
-import { BidDto } from '../models/BidDto';
+import { HubConnection, HubConnectionBuilder, HubConnectionState } from '@aspnet/signalr';
 import { UserService } from './user.service';
+import { Auction } from '../models/Auction';
 
 @Injectable()
 export class AuctionService {
   
+  private reconnectionInterval: number = 10000;
   private hub: HubConnection;
+  private connectedCallback: any;
 
   constructor(private http: HttpClient, private helper: HelperService, private userService: UserService) { 
     this.hub = new HubConnectionBuilder().withUrl(this.helper.GetBackendConnection() + "NotifyHub").build();
-    this.hub.start().catch(error => console.error(error));
+    this.hub.onclose(() => { this.Reconnect(); }); 
+    
+    this.hub.start().then(() => {
+      if(this.hub.state == HubConnectionState.Connected)
+        this.connectedCallback();
+    }).catch(error => {
+      console.error(error);
+    });
   }
 
   OnServerNotification(methodName: string, newMethod: (...args: any[]) => void)
@@ -22,27 +30,43 @@ export class AuctionService {
     this.hub.on(methodName, newMethod);
   }
 
-  Get(): Observable<AuctionProduct[]> {
-    let endpoint = this.helper.GetEndpoint('AuctionProduct');
-    var result = this.http.get<AuctionProduct[]>(endpoint, { headers: this.helper.GetHeaders() });
+  OnConnected(callback: any)
+  {
+    this.connectedCallback = callback;
+    
+    if(this.hub.state == HubConnectionState.Connected)
+      this.connectedCallback();
+  }
+
+  Get(): Observable<Auction[]> {
+    let endpoint = this.helper.GetEndpoint('Auction');
+    var result = this.http.get<Auction[]>(endpoint, { headers: this.helper.GetHeaders() });
     return result;
   }
 
-  Post(entity: AuctionProduct): Observable<any> {
-    let endpoint = this.helper.GetEndpoint('AuctionProduct');
-    var result = this.http.post(endpoint, entity, { headers: this.helper.GetHeaders() });
+  GetAvalaibles(): Observable<Auction[]> {
+    let endpoint = this.helper.GetEndpoint('Auction/availables');
+    var result = this.http.get<Auction[]>(endpoint, { headers: this.helper.GetHeaders() });
     return result;
   }
 
-  PostBid(value: number, auctionProductId: string): Observable<any> {
-    let endpoint = this.helper.GetEndpoint('AuctionProduct/' + encodeURIComponent(auctionProductId) + "/Bid");
-    var user = this.userService.GetFromStorage();
-    var entity = <BidDto> { value: value, userName: user.name };
+  Post(entity: Auction): Observable<any> {
+    let endpoint = this.helper.GetEndpoint('Auction');
     var result = this.http.post(endpoint, entity, { headers: this.helper.GetHeaders() });
     return result;
   }
 
   Join(auctionProductId: string) {
     this.hub.invoke("JoinGroup", auctionProductId)
+  }
+
+  private Reconnect(){
+    setTimeout(function(){
+      this.hub.start().done(() => {
+      })
+      .fail((error: any) => {
+          this.Reconnect();
+      });
+    }, this.reconnectionInterval);
   }
 }

@@ -11,10 +11,13 @@ import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
 import { AuctionFormComponent } from './components/auction-form/auction-form.component';
 import { AuctionCardComponent } from './components/auction-card/auction-card.component';
+import { AuctionProductCardComponent } from './components/auction-product-card/auction-product-card.component';
 
 import { HelperService } from './services/helper.service';
 import { AuctionService } from './services/auction.service';
+import { AuctionProductService } from './services/auction-product.service';
 import { UserService } from './services/user.service';
+import { HomeService } from './services/home.service';
 
 @NgModule({
   declarations: [
@@ -22,7 +25,8 @@ import { UserService } from './services/user.service';
     HomeComponent,
     LoginComponent,
     AuctionFormComponent,
-    AuctionCardComponent
+    AuctionCardComponent,
+    AuctionProductCardComponent
   ],
   imports: [
     BrowserModule,
@@ -33,7 +37,9 @@ import { UserService } from './services/user.service';
   providers: [
     HelperService,
     AuctionService,
-    UserService
+    AuctionProductService,
+    UserService,
+    HomeService
   ],
   bootstrap: [AppComponent]
 })

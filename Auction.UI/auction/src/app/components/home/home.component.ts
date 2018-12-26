@@ -4,6 +4,7 @@ import { UserService } from 'src/app/services/user.service';
 import { AuctionProduct } from 'src/app/models/AuctionProduct';
 import { AuctionService } from 'src/app/services/auction.service';
 import { Bid } from 'src/app/models/Bid';
+import { Auction } from 'src/app/models/Auction';
 
 @Component({
   selector: 'app-home',
@@ -11,7 +12,8 @@ import { Bid } from 'src/app/models/Bid';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
-  items: AuctionProduct[] = [];
+  items: Auction[] = [];
+
   message: string = null;
   messageCssClass: string = null;
 
@@ -24,11 +26,17 @@ export class HomeComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.SetupNotifications();
-    this.GetAuctions();
+    this.auctionService.OnConnected(() => {
+      this.SetupNotifications();
+      this.GetAuctions();
+    });
   }
 
   SetupNotifications() {
+    this.auctionService.OnServerNotification("Auction_OnAvailable", (auctionJson) => this.Auction_OnAvailable(auctionJson))
+    this.auctionService.OnServerNotification("Auction_OnStart", (auctionJson) => this.Auction_OnStart(auctionJson))
+    this.auctionService.OnServerNotification("Auction_OnEnd", (auctionJson) => this.Auction_OnEnd(auctionJson))
+
     this.auctionService.OnServerNotification("AuctionProduct_OnStart", (auctionProductJson) => this.AuctionProduct_OnStart(auctionProductJson))
     this.auctionService.OnServerNotification("AuctionProduct_OnBidOffered", (bidJson) => this.AuctionProduct_OnBidOffered(bidJson))
     this.auctionService.OnServerNotification("AuctionProduct_OnTick", (auctionProductJson) => this.AuctionProduct_OnTick(auctionProductJson))
@@ -39,7 +47,8 @@ export class HomeComponent implements OnInit {
     this.messageCssClass = "form-text text-muted alert alert-success";
     this.message = "searching for auctions...";
 
-    this.auctionService.Get().subscribe(
+    //this.auctionService.Get().subscribe(
+    this.auctionService.GetAvalaibles().subscribe(
       result => {
         this.items = result;
         this.UpdateConnections();
@@ -54,7 +63,7 @@ export class HomeComponent implements OnInit {
       },
       ex => {
         this.messageCssClass = "form-text text-muted alert alert-danger";
-        this.message = ex.error.Error.Message + " | " + ex.message;
+        this.message = this.helper.GetErrorMessage(ex);
         console.log(ex);
       }
     );
@@ -64,41 +73,74 @@ export class HomeComponent implements OnInit {
     if(this.helper.IsNullOrWhiteSpaceOrEmpty(this.items))
       return;
 
-    this.items.forEach(item => {
-      this.auctionService.Join(item.id);
+    this.items.forEach(autction => {
+      autction.auctionProducts.forEach(auctionProduct => {
+        this.auctionService.Join(auctionProduct.id);
+      });
     });
+  }
+
+  Auction_OnAvailable(auctionJson) {
+    this.message = null;
+
+    var auction= <Auction> JSON.parse(auctionJson);
+    var currentItem = this.items.find(e => e.id == auction.id);
+
+    if(this.helper.IsNullOrWhiteSpaceOrEmpty(currentItem)) {
+      this.items.push(auction);
+
+      auction.auctionProducts.forEach(auctionProduct => {
+        this.auctionService.Join(auctionProduct.id);
+      });
+    }
+  }
+
+  Auction_OnStart(auctionJson) {
+    var auction= <Auction> JSON.parse(auctionJson);
+    var index = this.items.findIndex(e => e.id == auction.id);
+    this.items[index].status = auction.status;
+    this.items[index].ended = auction.ended;
+  }
+
+  Auction_OnEnd(auctionJson) {
+    var auction= <Auction> JSON.parse(auctionJson);
+    var index = this.items.findIndex(e => e.id == auction.id);
+    this.items[index].status = auction.status;
+    this.items[index].ended = auction.ended;
   }
 
   AuctionProduct_OnStart(auctionProductJson) {
     var auctionProduct = <AuctionProduct> JSON.parse(auctionProductJson);
-    var currentItem = this.items.find(e => e.id == auctionProduct.id);
-
-    if(this.helper.IsNullOrWhiteSpaceOrEmpty(currentItem)) {
-      this.items.push(auctionProduct);
-      this.auctionService.Join(auctionProduct.id);
-    }
+    var auctionIndex = this.items.findIndex(e => e.id == auctionProduct.auction.id);
+    var auctionProductIndex = this.items[auctionIndex].auctionProducts.findIndex(e => e.id == auctionProduct.id);
+    this.items[auctionIndex].auctionProducts[auctionProductIndex].started = auctionProduct.started;
+    this.items[auctionIndex].auctionProducts[auctionProductIndex].status = auctionProduct.status;
+    this.items[auctionIndex].auctionProducts[auctionProductIndex].leftTimeInMilliseconds = auctionProduct.leftTimeInMilliseconds;
   }
 
   AuctionProduct_OnBidOffered(bidJson) {
     var bid = <Bid> JSON.parse(bidJson);
-    var index = this.items.findIndex(e => e.id == bid.auctionProduct.id);
-    this.items[index].lastValidBid = bid;
+    var auctionIndex = this.items.findIndex(e => e.id == bid.auctionProduct.auction.id);
+    var auctionProductIndex = this.items[auctionIndex].auctionProducts.findIndex(e => e.id == bid.auctionProduct.id);
+    this.items[auctionIndex].auctionProducts[auctionProductIndex].lastValidBid = bid;
   }
 
   AuctionProduct_OnTick(auctionProductJson) {
     var auctionProduct = <AuctionProduct> JSON.parse(auctionProductJson);
-    var index = this.items.findIndex(e => e.id == auctionProduct.id);
-    this.items[index].started = auctionProduct.started;
-    this.items[index].status = auctionProduct.status;
-    this.items[index].leftTimeInMilliseconds = auctionProduct.leftTimeInMilliseconds;
+    var auctionIndex = this.items.findIndex(e => e.id == auctionProduct.auction.id);
+    var auctionProductIndex = this.items[auctionIndex].auctionProducts.findIndex(e => e.id == auctionProduct.id);
+    this.items[auctionIndex].auctionProducts[auctionProductIndex].started = auctionProduct.started;
+    this.items[auctionIndex].auctionProducts[auctionProductIndex].status = auctionProduct.status;
+    this.items[auctionIndex].auctionProducts[auctionProductIndex].leftTimeInMilliseconds = auctionProduct.leftTimeInMilliseconds;
   }
 
   AuctionProduct_OnEnd(auctionProductJson) {
     var auctionProduct = <AuctionProduct> JSON.parse(auctionProductJson);
-    var index = this.items.findIndex(e => e.id == auctionProduct.id);
-    this.items[index].ended = auctionProduct.ended;
-    this.items[index].status = auctionProduct.status;
-    this.items[index].leftTimeInMilliseconds = auctionProduct.leftTimeInMilliseconds;
-    this.items[index].lastValidBid = auctionProduct.lastValidBid;
+    var auctionIndex = this.items.findIndex(e => e.id == auctionProduct.auction.id);
+    var auctionProductIndex = this.items[auctionIndex].auctionProducts.findIndex(e => e.id == auctionProduct.id);
+    this.items[auctionIndex].auctionProducts[auctionProductIndex].ended = auctionProduct.ended;
+    this.items[auctionIndex].auctionProducts[auctionProductIndex].status = auctionProduct.status;
+    this.items[auctionIndex].auctionProducts[auctionProductIndex].leftTimeInMilliseconds = auctionProduct.leftTimeInMilliseconds;
+    this.items[auctionIndex].auctionProducts[auctionProductIndex].lastValidBid = auctionProduct.lastValidBid;
   }
 }

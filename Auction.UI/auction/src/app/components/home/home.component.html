@@ -1,5 +1,5 @@
 <div *ngIf="items" class="row">
-    <app-auction-card class="col-md-4" *ngFor="let item of items" [auctionProduct]="item"></app-auction-card>
+    <app-auction-card class="col-md-12" *ngFor="let item of items" [auction]="item"></app-auction-card>
 </div>
 <p *ngIf="message" id="message" [className]="messageCssClass">
     {{ message }}

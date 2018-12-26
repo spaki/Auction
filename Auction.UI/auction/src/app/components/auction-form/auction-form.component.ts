@@ -4,6 +4,7 @@ import { HelperService } from '../../services/helper.service';
 import { UserService } from 'src/app/services/user.service';
 import { AuctionService } from 'src/app/services/auction.service';
 import { AuctionProduct } from 'src/app/models/AuctionProduct';
+import { Auction } from 'src/app/models/Auction';
 
 @Component({
   selector: 'app-auction-form',
@@ -11,7 +12,7 @@ import { AuctionProduct } from 'src/app/models/AuctionProduct';
   styleUrls: ['./auction-form.component.css']
 })
 export class AuctionFormComponent implements OnInit {
-  entity: AuctionProduct = <AuctionProduct> {};
+  entity: Auction = <Auction> {};
   message: string = null;
   messageCssClass: string = null;
 

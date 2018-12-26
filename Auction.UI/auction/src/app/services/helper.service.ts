@@ -60,4 +60,28 @@ export class HelperService {
   IsNullOrWhiteSpaceOrEmpty(value: any): boolean {
     return typeof value === "undefined" || value == null || value == "" || (typeof value === "string" && value.trim() == "") || (Array.isArray(value) && value.length < 1);;
   }
+
+  GetErrorMessage(ex) {
+    if(this.IsNullOrWhiteSpaceOrEmpty(ex))
+      return "";
+    
+    var result = "";
+
+    if(ex.error && ex.error.Error && ex.error.Error.Message && !this.IsNullOrWhiteSpaceOrEmpty(ex.error.Error.Message))
+      result += ex.error.Error.Message.toString();
+
+    if(!this.IsNullOrWhiteSpaceOrEmpty(result))
+      result += " | ";
+
+    if(ex.message && !this.IsNullOrWhiteSpaceOrEmpty(ex.message))
+      result += ex.message;
+
+    if(!this.IsNullOrWhiteSpaceOrEmpty(result))
+      result += " | ";
+
+    if(ex.statusText && !this.IsNullOrWhiteSpaceOrEmpty(ex.statusText))
+      result += ex.statusText.toString();
+
+    return result;
+  }
 }

@@ -17,8 +17,10 @@ namespace Auction.Domain.Models
         public int Sequence { get; set; }
         public int TimeoutInMilliseconds { get; set; }
         public int TickIntervalInMilliseconds { get; set; }
+        public Auction Auction { get; set; }
         public Product Product { get; set; }
-        public decimal StartValue { get; set; }
+        public decimal InitialValue { get; set; }
+        public decimal IncrementValue { get; set; }
         public DateTime? Started { get; private set; }
         public DateTime? Ended { get; private set; }
         public List<Bid> Bids { get; private set; } = new List<Bid>();
@@ -69,7 +71,7 @@ namespace Auction.Domain.Models
         {
             lock (lockFlag)
             {
-                if (value < StartValue || value <= LastValidBid?.Value)
+                if (value < InitialValue || value <= LastValidBid?.Value)
                     throw new DomainException("Invalid Bid Value.");
 
                 var bid = new Bid(user, value, this);
@@ -82,18 +84,42 @@ namespace Auction.Domain.Models
 
         public void Start()
         {
-            CheckIfEnded();
-            Started = DateTime.UtcNow;
-            OnStart?.Invoke(this);
+            lock (lockFlag)
+            {
+                CheckIfEnded();
+                Started = DateTime.UtcNow;
+                OnStart?.Invoke(this);
 
-            timeoutTimer = new Timer(TimeoutInMilliseconds) { AutoReset = false };
-            timeoutTimer.Elapsed += End;
+                timeoutTimer = new Timer(TimeoutInMilliseconds) { AutoReset = false };
+                timeoutTimer.Elapsed += End;
 
-            tickTimer = new Timer(TickIntervalInMilliseconds) { AutoReset = true };
-            tickTimer.Elapsed += Tick; 
+                tickTimer = new Timer(TickIntervalInMilliseconds) { AutoReset = true };
+                tickTimer.Elapsed += Tick;
 
-            timeoutTimer.Start();
-            tickTimer.Start();
+                timeoutTimer.Start();
+                tickTimer.Start();
+            }
+        }
+
+        public void Validate()
+        {
+            if (string.IsNullOrWhiteSpace(Product?.Name))
+                throw new DomainException("Invalid Product");
+
+            if (TimeoutInMilliseconds < 10000)
+                throw new DomainException("Timeout should be greater than 10s");
+
+            if (TickIntervalInMilliseconds < 1000)
+                throw new DomainException("Tick Interval should be greater than 1s");
+
+            if (InitialValue < 0.01m)
+                throw new DomainException("Initial Value should be greater than 0.01");
+
+            if (IncrementValue < 0.01m)
+                throw new DomainException("Incremental Value should be greater than 0.01");
+
+            if (string.IsNullOrWhiteSpace(Product?.Name))
+                throw new DomainException("Invalid Product.");
         }
 
         private void Tick(object sender, ElapsedEventArgs e) => OnTick?.Invoke(this);

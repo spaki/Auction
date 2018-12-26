@@ -9,32 +9,24 @@ namespace Auction.Domain.Managers
 {
     public class AuctionManager
     {
-        private static List<AuctionProduct> AuctionProducts = new List<AuctionProduct>();
+        private static List<Models.Auction> auctions = new List<Models.Auction>();
         private static object lockFlag = new object();
 
-        public static void Add(AuctionProduct auctionProduct)
+        public static void Add(Models.Auction auction)
         {
-            if (string.IsNullOrWhiteSpace(auctionProduct.Product?.Name))
-                throw new DomainException("Invalid Product");
+            auction.Validate();
 
-            if (auctionProduct.TimeoutInMilliseconds < 10000)
-                throw new DomainException("Timeout should be greater than 10s");
+            auction.Id = Guid.NewGuid();
 
-            if (auctionProduct.TickIntervalInMilliseconds < 1000)
-                throw new DomainException("Tick Interval should be greater than 1s");
-
-            if (auctionProduct.StartValue < 1000)
-                throw new DomainException("Start Value should be greater than 0.01");
-
-            if (string.IsNullOrWhiteSpace(auctionProduct.Product?.Name))
-                throw new DomainException("Invalid Product.");
-
-            auctionProduct.Id = Guid.NewGuid();
-            auctionProduct.Product.Id = Guid.NewGuid();
+            auction.AuctionProducts.ForEach(ap => {
+                ap.Id = Guid.NewGuid();
+                ap.Product.Id = Guid.NewGuid();
+                ap.Product.Pictures.ForEach(pic => pic.Id = Guid.NewGuid());
+            });
 
             lock (lockFlag)
             {
-                AuctionProducts.Add(auctionProduct);
+                auctions.Add(auction);
             }
         }
 
@@ -42,20 +34,38 @@ namespace Auction.Domain.Managers
         {
             lock (lockFlag)
             {
-                AuctionProducts.RemoveAll(e => e.Status == AuctionProductStatus.Ended);
+                auctions.RemoveAll(e => e.Status == AuctionStatus.Ended);
             }
         }
 
-        public static List<AuctionProduct> List() => AuctionProducts;
+        public static List<Models.Auction> ListAll() => auctions;
 
-        public static AuctionProduct Get(Guid id)
+        public static List<Models.Auction> ListAvailables() => auctions.Where(e => new[] { AuctionStatus.NotStartedVisible, AuctionStatus.Running }.Contains(e.Status)).ToList();
+
+        public static AuctionProduct GetAuctionProduct(Guid id)
         {
-            var result = AuctionProducts.FirstOrDefault(e => e.Id == id);
+            lock (lockFlag)
+            {
+                var result = auctions.SelectMany(e => e.AuctionProducts).FirstOrDefault(e => e.Id == id);
 
-            if (result == null)
-                throw new DomainException("Auction for this product not found. Probably it has finished");
+                if (result == null)
+                    throw new DomainException("Auction for this product not found. Probably it has finished");
 
-            return result;
+                return result;
+            }
+        }
+
+        public static Models.Auction GetAuction(Guid id)
+        {
+            lock (lockFlag)
+            {
+                var result = auctions.FirstOrDefault(e => e.Id == id);
+
+                if (result == null)
+                    throw new DomainException("Auction not found. Probably it has finished");
+
+                return result;
+            }
         }
     }
 }
